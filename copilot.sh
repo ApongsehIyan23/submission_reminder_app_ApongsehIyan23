@@ -1,33 +1,25 @@
 #!/bin/bash
 
-# Get the absolute path of the script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# This script updates the ASSIGNMENT value in all students' config.env files
 
-# Path to the config.env file
-CONFIG_FILE="$SCRIPT_DIR/config/config.env"
+# Prompt for the new assignment value
+read -p "Enter the new assignment name (Shell Navigation, Shell Basics, or Git): " new_value
 
-# Check if config.env exists
-if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "❌ Error: $CONFIG_FILE not found."
+# Validate the new value
+if [[ "$new_value" != "Shell Navigation" && "$new_value" != "Shell Basics" && "$new_value" != "Git" ]]; then
+    echo "Invalid assignment value. Must be one of: Shell Navigation, Shell Basics, or Git."
     exit 1
 fi
 
-# Allowed assignments
-VALID_ASSIGNMENTS=("Shell Navigation" "Shell Basics" "Git")
+# Loop through all submission_reminder_* folders
+for folder in submission_reminder_*; do
+    config_file="$folder/config/config.env"
 
-# Prompt the user for the new assignment name
-read -p "Enter the new assignment name (Shell Navigation, Shell Basics, Git): " NEW_ASSIGNMENT
+    if [[ -f "$config_file" ]]; then
+        sed -i "s/^ASSIGNMENT=.*/ASSIGNMENT=\"$new_value\"/" "$config_file"
+        echo "Updated $config_file"
+    fi
+done
 
-# Validate input
-if [[ ! " ${VALID_ASSIGNMENTS[*]} " =~ " ${NEW_ASSIGNMENT} " ]]; then
-    echo "❌ Invalid assignment name. Must be one of: Shell Navigation, Shell Basics, Git."
-    exit 1
-fi
-
-# Replace the ASSIGNMENT value in config.env using sed
-# This searches for the line starting with ASSIGNMENT= and replaces the value
-sed -i "s/^ASSIGNMENT=.*/ASSIGNMENT=\"$NEW_ASSIGNMENT\"/" "$CONFIG_FILE"
-
-echo "✅ Assignment updated to '$NEW_ASSIGNMENT' in $CONFIG_FILE."
-echo "You can now rerun startup.sh to check non-submission status."
+echo "All assignment values successfully updated to '$new_value'."
 
